@@ -34,9 +34,6 @@ public class CameraScript : MonoBehaviour
     [SerializeField]
     private Camera _CurrentCamera;
 
-    /**
-     * Cette fonction nous premet de créer le QUAD que l'on va appliquer sur la scène 
-    **/
 
     void CustomGraphicsBlit(RenderTexture src, RenderTexture dest, Material material, int pass )
     {
@@ -110,10 +107,6 @@ public class CameraScript : MonoBehaviour
         }
     }   
 
-    /**
-     * Cette fonction s'execute à chaque frame
-     * Elle permet de modifier la scène en appliquant une texture sur celle-ci
-     **/
     void OnRenderImage(RenderTexture src, RenderTexture dest)
     {
 
@@ -135,8 +128,9 @@ public class CameraScript : MonoBehaviour
 
         _EffectMaterial.SetVector("_lightDir", directionalLight ? directionalLight.forward : Vector3.down);
         _EffectMaterial.SetMatrix("_frustrumCorners", corners);
-        _EffectMaterial.SetVector("_cameraWsPos", _CurrentCamera.transform.position);
 
+
+        _EffectMaterial.SetVector("_cameraWsPos", _CurrentCamera.transform.position);
         //Graphics.Blit(src, dest);
          CustomGraphicsBlit(src, dest, _EffectMaterial,0);
 

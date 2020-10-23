@@ -141,12 +141,12 @@ Material:
     - _SrcBlend: 1
     - _UVSec: 0
     - _ZWrite: 1
-    - _absorbtionCoeff: 0.392
+    - _absorbtionCoeff: 0.38
     - _g: -0.1
-    - _gc: 0.324
-    - _gd: 0.03
+    - _gc: 0.285
+    - _gd: 0.06
     - _globalDensity: 0.453
-    - _scatteringCoeff: 0.461
+    - _scatteringCoeff: 0.668
     - _w0: 4.1
     - _w1: 0.81
     m_Colors:

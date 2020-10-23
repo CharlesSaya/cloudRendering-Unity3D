@@ -55,6 +55,7 @@
             #include "UnityCG.cginc"
             #define PI 3.1415  
 
+            sampler2D _CameraDepthTexture;
             sampler2D _MainTex;
             sampler2D _NoiseRTex;
             sampler2D _NoiseGTex;
@@ -75,6 +76,7 @@
 
             float4 _sphere;
             float4 _sphere2;
+
 
             float _SampleCount0;
             float _SampleCount1;
@@ -117,7 +119,7 @@
 
                 //SIGNED DISTANCE FUNCTIONS-----------------------------------------------------------------------------------------------------------
 
-                //Sphere signed distance function
+
                 float SDFSphere(float3 p, float radius)
                 {
                     return length(p) - radius;
@@ -229,6 +231,7 @@
                 }
 
 
+
                 float heightAlteringFunc(float percentHeight) {
                     float srb = saturate(remap(percentHeight, 0, 0.07, 0, 1));
                     float srt = saturate(remap(percentHeight, 0.2, 0.3, 1, 0));
@@ -240,8 +243,6 @@
                     float drt = saturate(remap(percentHeight, 0.9, 1, 1, 0)) ;
                     return _gd * drb * drt *  2;
                 }
-
-                //Fonction nous permettant de récupérer la densité à une hauteur donnée
 
                 float getDensity(float percentHeight,float2 uv, float t){
                     N.r = perlinFbm(uv *  _FreqNoise, 2, t);
@@ -256,25 +257,18 @@
 
                 //LIGHTING FUNCTIONS-----------------------------------------------------------------------------------------------------------
 
-                //Beer-Powder function 
-                //Elle permet de fusionner deux fonctions de transmittance pour équilibrer l'atténuation de la lumière
-
                 float BP(float d) {
                 return exp(-_absorbtionCoeff * d) * (1 - exp(-_absorbtionCoeff * 2 * d));
                 }
 
-                //Henney-Greensetein funtion
 
                 float HG(float g, float theta){
                     float g2 = _g*_g;
                     return  (1.-g2) / pow((1. + g2 - 2.*_g*cos(theta)),1.5);
                 }
-   
-                
-                //Fonction de marching vers le soleil
-                //Elle retourne la densité altérée par  BP le long du rayon
 
-                float raymarchTowardsSun(float3 origin, float3 ld,float3 rayDirection, float2 uv){ 
+
+                float raymarchTowardsSun(float3 origin, float3 ld,float3 rayDirection, float2 uv){ //absorption and scattering
                   
                     float stepLength = 0.5*(_Altitude1-_Altitude0) / _SampleCountL;
                     float t=stepLength;
@@ -294,15 +288,12 @@
 
                 //RAYMARCH FUNCTION-----------------------------------------------------------------------------------------------------------
           
-                //Sphere UVs
                 float2 getUV(float3 position){
                    float3 n = normalize(position);
                    float u = atan2(n.x, n.z) / (2*PI) + 0.5;
                    float v = n.y * 0.5 + 0.5;
                    return float2(u,v);
                 }
-
-                //Fonction de marching principale
 
                 float4 raymarchClouds(float3 origin, v2f input)
                 {
@@ -337,15 +328,15 @@
                         if(totalDensity>=1)
                             break;
 
-                        dist0 = map(position, _sphere); //distance to first sphere
-                        dist1 = map(position, _sphere2);  //distance to second sphere
+                        dist0 = map(position, _sphere); //distance à la première sphère
+                        dist1 = map(position, _sphere2);  //distance à la seconde sphère
                         
                         position = origin + t * input.rayDirection;
 
-                        if(dist0<=10e-4){   //if we're still in the first sphere
-                            t-=dist0;       // we march until we reach it
+                        if(dist0<=10e-4){ //if we're still in the first sphere
+                            t-=dist0;
                             float3 p = origin + t*raydir;
-                            uv = getUV(p)+_Time.x *0.01; //we get the inner sphere uv with witch we're going to get the density value
+                            uv = getUV(p)+_Time.x *0.01;
                         }
                         else{ // we're between the first and second sphere
                                 
@@ -353,15 +344,15 @@
 
                             density = getDensity(ph,uv,t); //density at this height
                             if(density > 0){ // if we're in a cloud
-                                if(currentStep == origStep){ // we take a step back and shorten the step length to march with higher precision
+                                if(currentStep == origStep){ // we take a step back and shorten the step length
                                     t-=currentStep;             
                                     currentStep = cloudStep;
                                 }else{
-                                    totalDensity += density; 
-                                    lightDensity +=  raymarchTowardsSun(position,ld,raydir, uv ) * hg   * _scatteringCoeff;
+                                    totalDensity += density; // we're in a cloud with correct step length so we add the density at the current height
+                                    lightDensity +=  raymarchTowardsSun(position,ld,raydir, uv ) * hg * _scatteringCoeff;
                                 }
                             }else{ //we are not in a cloud
-                                if(currentStep == cloudStep){ // if we were in one cloud and stepped out of it 
+                                if(currentStep == cloudStep){ // if we were in one and stepped out of it 
                                     t+=10*currentStep;          // we advance a bit with with the short-step length 
                                     currentStep=origStep;   // and set back the normal length step
                                 }   
