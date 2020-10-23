@@ -1,0 +1,13 @@
+fileFormatVersion: 2
+guid: b387e47af37b6484086ffed9671d9ad2
+MonoImporter:
+  externalObjects: {}
+  serializedVersion: 2
+  defaultReferences:
+  - raymarchShader: {fileID: 4800000, guid: 179cdb6257355d8468008e5455a66e4f, type: 3}
+  - SunLight: {instanceID: 0}
+  executionOrder: 0
+  icon: {instanceID: 0}
+  userData: 
+  assetBundleName: 
+  assetBundleVariant: 
